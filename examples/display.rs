@@ -19,48 +19,51 @@ use embedded_graphics::primitives::Rectangle;
 struct Delay;
 
 impl DelayMs<u8> for Delay {
-    fn delay_ms(&mut self, ms: u8) {
-        let dt = (ms as u64) * 1000;
-        let t0 = riscv::register::mcycle::read64();
-        loop {
-            let t = riscv::register::mcycle::read64();
-            if (t - t0) > dt {
-                break;
-            }
-        }
-    }
+	fn delay_ms(&mut self, ms: u8) {
+		let dt = (ms as u64) * 1000;
+		let t0 = riscv::register::mcycle::read64();
+		loop {
+			let t = riscv::register::mcycle::read64();
+			if (t - t0) > dt {
+				break;
+			}
+		}
+	}
 }
 
 #[entry]
 fn main() -> ! {
-    let dp = pac::Peripherals::take().unwrap();
+	let dp = pac::Peripherals::take().unwrap();
 
-    // Configure clocks
-    let rcu = dp.RCU.constrain();
-    let clocks = rcu.cctl.ext_hf_clock(8.mhz()).sysclk(108.mhz()).freeze();
+	// Configure clocks
+	let rcu = dp.RCU.constrain();
+	let clocks = rcu.cctl.ext_hf_clock(8.mhz()).sysclk(108.mhz()).freeze();
 
-    let gpioa = dp.GPIOA.split();
-    let gpiob = dp.GPIOB.split();
+	let gpioa = dp.GPIOA.split();
+	let gpiob = dp.GPIOB.split();
 
-    let sck = gpioa.pa5.into_alternate_push_pull();
-    let miso = gpioa.pa6.into_floating_input();
-    let mosi = gpioa.pa7.into_alternate_push_pull();
-    let spi0 = Spi::spi0(dp.SPI0, (sck, miso, mosi), MODE_0, 16.mhz(), &clocks);
+	let sck = gpioa.pa5.into_alternate_push_pull();
+	let miso = gpioa.pa6.into_floating_input();
+	let mosi = gpioa.pa7.into_alternate_push_pull();
+	let spi0 = Spi::spi0(dp.SPI0, (sck, miso, mosi), MODE_0, 50.mhz(), &clocks);
 
-    let dc = gpiob.pb0.into_push_pull_output();
-    let rst = gpiob.pb1.into_push_pull_output();
-    let mut cs = gpiob.pb2.into_push_pull_output();
-    cs.set_low().unwrap();
+	let dc = gpiob.pb0.into_push_pull_output();
+	let rst = gpiob.pb1.into_push_pull_output();
+	let mut cs = gpiob.pb2.into_push_pull_output();
+	cs.set_low().unwrap();
 
-    let mut lcd = ST7735::new(spi0, dc, rst, false, true);
-    let mut delay = Delay;
-    lcd.init(&mut delay).unwrap();
-    lcd.set_orientation(&Orientation::Landscape).unwrap();
-    lcd.set_offset(0, 26);
+	let mut lcd = ST7735::new(spi0, dc, rst, false, true);
+	let mut delay = Delay;
+	lcd.init(&mut delay).unwrap();
+	lcd.set_orientation(&Orientation::Landscape).unwrap();
+	lcd.set_offset(0, 26);
 
-    lcd.draw(Rectangle::new(Coord::new(0, 0), Coord::new(179, 79)).fill(Some(Rgb565::from(0x0u8))));
-    let t = Font6x8::render_str(" Hello Rust! ").fill(Some(Rgb565::from((0,0xff,0)))).translate(Coord::new(40, 35));
-    lcd.draw(t);
+	lcd.draw(Rectangle::new(Coord::new(0, 0), Coord::new(179, 79)).fill(Some(Rgb565::from(0x0u8))));
+	let t = Font6x8::render_str(" Hello Rust! ").fill(Some(Rgb565::from((0, 0xff, 0)))).translate(Coord::new(40, 35));
+	lcd.draw(t);
 
-    loop {}
+//    delay.delay_ms(1000);
+//    lcd.draw(Rectangle::new(Coord))
+
+	loop {}
 }

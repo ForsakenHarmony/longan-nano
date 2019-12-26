@@ -1,0 +1,38 @@
+[env]
+MODE = "debug"
+EXAMPLE = "light_led"
+
+[tasks.build_example_debug]
+condition = { env = { "MODE" = "debug" } }
+command = "cargo"
+args = ["build", "--example", "${EXAMPLE}"]
+
+[tasks.build_example_release]
+condition = { env = { "MODE" = "release" } }
+command = "cargo"
+args = ["build", "--release", "--example", "${EXAMPLE}"]
+
+#[tasks.objcopy_light_led]
+#install_crate = "cargo-binutils"
+#command = "cargo"
+#args = ["objcopy", "--", "--strip-all", "-O", "binary", "target/riscv32imac-unknown-none-elf/debug/examples/light_led", "rom.bin"]
+
+[tasks.objcopy]
+command = ".tools/riscv-nuclei-elf-objcopy"
+args = ["-O", "binary", "target/riscv32imac-unknown-none-elf/${MODE}/examples/${EXAMPLE}", "rom.bin"]
+dependencies = [
+  "build_example_debug",
+  "build_example_release"
+]
+
+[tasks.flash]
+command = ".tools/dfu-util"
+args = ["-a", "0", "-s", "0x08000000:leave", "-D", "rom.bin"]
+dependencies = [
+  "objcopy"
+]
+
+[tasks.example]
+dependencies = [
+    "flash"
+]
