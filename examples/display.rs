@@ -59,7 +59,7 @@ fn main() -> ! {
 	lcd.set_offset(0, 26);
 
 	lcd.draw(Rectangle::new(Coord::new(0, 0), Coord::new(179, 79)).fill(Some(Rgb565::from(0x0u8))));
-	let t = Font6x8::render_str(" Hello Rust! ").fill(Some(Rgb565::from((0, 0xff, 0)))).translate(Coord::new(40, 35));
+	let t = Font6x8::render_str(" Hello <> Rust! ").fill(Some(Rgb565::from((0, 0xff, 0)))).translate(Coord::new(30, 35));
 	lcd.draw(t);
 
 //    delay.delay_ms(1000);
