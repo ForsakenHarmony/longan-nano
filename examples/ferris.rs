@@ -3,15 +3,18 @@
 
 use panic_halt as _;
 
-use embedded_graphics::fonts::{Font6x8, Text};
+use embedded_graphics::image::{Image, ImageRaw};
+use embedded_graphics::pixelcolor::raw::LittleEndian;
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::*;
+use embedded_graphics::primitive_style;
 use embedded_graphics::primitives::Rectangle;
-use embedded_graphics::{primitive_style, text_style};
 use gd32vf103xx_hal::pac;
 use gd32vf103xx_hal::prelude::*;
 use longan_nano::{lcd, lcd_pins};
 use riscv_rt::entry;
+
+const FERRIS: &[u8] = include_bytes!("ferris.raw");
 
 #[entry]
 fn main() -> ! {
@@ -39,15 +42,9 @@ fn main() -> ! {
         .draw(&mut lcd)
         .unwrap();
 
-    let style = text_style!(
-        font = Font6x8,
-        text_color = Rgb565::BLACK,
-        background_color = Rgb565::GREEN
-    );
-
-    // Create a text at position (20, 30) and draw it using style defined above
-    Text::new(" Hello Rust! ", Point::new(40, 35))
-        .into_styled(style)
+    // Load Image Data
+    let raw_image: ImageRaw<Rgb565, LittleEndian> = ImageRaw::new(&FERRIS, 86, 64);
+    Image::new(&raw_image, Point::new(width / 2 - 43, height / 2 - 32))
         .draw(&mut lcd)
         .unwrap();
 
