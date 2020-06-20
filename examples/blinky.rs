@@ -3,14 +3,14 @@
 
 use panic_halt as _;
 
-use riscv_rt::entry;
-use gd32vf103xx_hal as hal;
-use hal::pac as pac;
-use gd32vf103xx_hal::gpio::GpioExt;
-use longan_nano::led::{Led, rgb};
-use gd32vf103xx_hal::rcu::RcuExt;
-use gd32vf103xx_hal::delay::McycleDelay;
 use embedded_hal::blocking::delay::DelayMs;
+use gd32vf103xx_hal as hal;
+use gd32vf103xx_hal::delay::McycleDelay;
+use gd32vf103xx_hal::gpio::GpioExt;
+use gd32vf103xx_hal::rcu::RcuExt;
+use hal::pac;
+use longan_nano::led::{rgb, Led};
+use riscv_rt::entry;
 
 #[entry]
 fn main() -> ! {

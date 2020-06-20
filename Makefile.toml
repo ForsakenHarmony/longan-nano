@@ -1,14 +1,8 @@
 [env]
-MODE = "debug"
+MODE = "release"
 EXAMPLE = "light_led"
 
-[tasks.build_example_debug]
-condition = { env = { "MODE" = "debug" } }
-command = "cargo"
-args = ["build", "--example", "${EXAMPLE}"]
-
-[tasks.build_example_release]
-condition = { env = { "MODE" = "release" } }
+[tasks.build_example]
 command = "cargo"
 args = ["build", "--release", "--example", "${EXAMPLE}"]
 
@@ -21,8 +15,7 @@ args = ["build", "--release", "--example", "${EXAMPLE}"]
 command = ".tools/riscv-nuclei-elf-objcopy"
 args = ["-O", "binary", "target/riscv32imac-unknown-none-elf/${MODE}/examples/${EXAMPLE}", "rom.bin"]
 dependencies = [
-  "build_example_debug",
-  "build_example_release"
+  "build_example"
 ]
 
 [tasks.flash]
@@ -33,11 +26,10 @@ dependencies = [
 ]
 
 [tasks.ocdflash]
-command = ".tools/openocd"
+command = ".tools/tool-openocd-gd32v/bin/openocd"
 args = ["-f", "./sipeed-jtag.cfg", "-f", "./openocd.cfg", "-c", "flash protect 0 0 last off; program {target/riscv32imac-unknown-none-elf/${MODE}/examples/${EXAMPLE}} verify; mww 0xe004200c 0x4b5a6978; mww 0xe0042008 0x01; resume; exit 0;"]
 dependencies = [
-	"build_example_debug",
-	"build_example_release"
+	"build_example"
 ]
 
 [tasks.example]

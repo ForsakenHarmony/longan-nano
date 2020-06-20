@@ -3,10 +3,10 @@
 
 extern crate panic_halt;
 
-use riscv_rt::entry;
-use longan_nano::hal::prelude::*;
 use longan_nano::hal::pac::Peripherals;
+use longan_nano::hal::prelude::*;
 use longan_nano::{sprint, sprintln};
+use riscv_rt::entry;
 
 #[inline(never)]
 pub unsafe extern "C" fn __read32(_default: usize, addr: usize) -> u32 {
@@ -16,7 +16,11 @@ pub unsafe extern "C" fn __read32(_default: usize, addr: usize) -> u32 {
 
 #[export_name = "trap_handler"]
 fn trap_handler() {
-    use riscv::register::{mcause, mepc, mtval, mcause::{Trap, Exception}};
+    use riscv::register::{
+        mcause,
+        mcause::{Exception, Trap},
+        mepc, mtval,
+    };
     let ld_insn_addr = __read32 as *const () as usize;
 
     let mcause = mcause::read();
@@ -28,7 +32,13 @@ fn trap_handler() {
     }
 
     sprintln!("trap!");
-    sprintln!("mcause={:08x} mepc={:08x} mtval={:08x} addr={:08x}", mcause.bits(), mepc, mtval::read(), ld_insn_addr);
+    sprintln!(
+        "mcause={:08x} mepc={:08x} mtval={:08x} addr={:08x}",
+        mcause.bits(),
+        mepc,
+        mtval::read(),
+        ld_insn_addr
+    );
 
     loop {}
 }
@@ -55,9 +65,7 @@ fn is_readable(addr: usize) -> bool {
 #[derive(Copy, Clone)]
 enum ScanState {
     Invalid,
-    Valid {
-        interval_start: usize,
-    },
+    Valid { interval_start: usize },
 }
 
 #[entry]
@@ -70,10 +78,16 @@ fn main() -> ! {
 
     // Configure UART for stdout
     let gpioa = p.GPIOA.split(&mut rcu);
-    longan_nano::stdout::configure(p.USART0, gpioa.pa9, gpioa.pa10, 115_200.bps(), &mut afio, &mut rcu);
+    longan_nano::stdout::configure(
+        p.USART0,
+        gpioa.pa9,
+        gpioa.pa10,
+        115_200.bps(),
+        &mut afio,
+        &mut rcu,
+    );
 
     sprintln!("scan started");
-
 
     let mut addr: usize = 0;
     let mut state = ScanState::Invalid;
@@ -85,13 +99,13 @@ fn main() -> ! {
         let readable = is_readable(addr);
         state = match (state, readable) {
             (ScanState::Invalid, true) => ScanState::Valid {
-                interval_start: addr
+                interval_start: addr,
             },
             (ScanState::Valid { interval_start }, false) => {
                 sprintln!("\r{:08x}..{:08x}", interval_start, addr - 1);
                 ScanState::Invalid
-            },
-            (ScanState::Valid {..}, true) | (ScanState::Invalid, false) => state,
+            }
+            (ScanState::Valid { .. }, true) | (ScanState::Invalid, false) => state,
         };
 
         if let Some(v) = addr.checked_add(0x100) {

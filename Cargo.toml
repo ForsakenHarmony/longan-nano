@@ -17,9 +17,12 @@ riscv = "0.5.4"
 st7735-lcd = { version = "0.7", optional = true }
 
 [dev-dependencies]
-riscv-rt = "0.6.1"
-panic-halt = "0.2.0"
+riscv-rt = "0.7"
+panic-halt = "0.2"
 embedded-graphics = "0.5"
+hub75 = "0.1"
+libm = "0.2"
+lazy_static = { version = "1.4.0", features = [ "spin_no_std" ] }
 
 [features]
 lcd = ["st7735-lcd"]
